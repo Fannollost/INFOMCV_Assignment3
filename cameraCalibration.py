@@ -89,10 +89,9 @@ def drawOrigin(frame, criteria, objp, mtx, dist , webcam = False, camera = None)
     if webcam :
         ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, cv.CALIB_CB_FAST_CHECK)
     else:
-        ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, None)
-        if not ret :
-            imgpoints, objpoints, corners = pickCorners([],[],objp,frame,gray,criteria, False)
-            ret = True
+        #ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, None)
+        imgpoints, objpoints, corners = pickCorners([],[],objp,frame,gray,criteria, False)
+        ret = True
 
     if (ret == True):
         corners2 = cv.cornerSubPix(gray, corners, (5, 5), (-1, -1), criteria)
@@ -100,7 +99,7 @@ def drawOrigin(frame, criteria, objp, mtx, dist , webcam = False, camera = None)
         imgpts, jac = cv.projectPoints(const.AXIS, rvecs, tvecs, mtx, dist)
         cubeimgpts, jac = cv.projectPoints(const.CUBE_AXIS, rvecs, tvecs, mtx, dist)
         img = draw(frame, corners2, imgpts)
-        img = drawCube(img, corners2, cubeimgpts)
+        #img = drawCube(img, corners2, cubeimgpts)
         saveCalibration(mtx,dist,rvecs,tvecs, camera)
         return img
     else:
@@ -368,6 +367,15 @@ def main(currentCam):
 
 
 if __name__ == "__main__":
-    camArray = [const.CAM3]
-    for i in range(len(camArray)):
-        main(camArray[i])
+    calibration = np.load(const.DATA_PATH)
+    mtx = calibration['mtx']
+    dist = calibration['dist']
+    camArray = [const.CAM1,const.CAM2,const.CAM3,const.CAM4]
+    criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+    objp = np.zeros((const.BOARD_SIZE[0]*const.BOARD_SIZE[1],3), np.float32)
+    objp[:,:2] = (const.SQUARE_SIZE * np.mgrid[0:const.BOARD_SIZE[0], 0:const.BOARD_SIZE[1]]).T.reshape(-1,2)
+
+    for cam in camArray:
+        frames = getImagesFromVideo(cam[0], const.VIDEO_CHECKERBOARD, 1)
+        img = drawOrigin(frames[0], criteria, objp, mtx, dist, False, cam[0])
+        showImage(const.WINDOW_NAME, img, 0)

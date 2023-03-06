@@ -20,6 +20,9 @@ global imgTablesInitialized
 imgTables = [0,0,0,0]
 imgTablesInitialized = False
 
+global tableSaved
+tableSaved = False
+
 global prevPositions
 prevPositions = []
 
@@ -59,7 +62,9 @@ def set_voxel_positions(width, height, depth, frame):
     global tables
     global tableInitialized
     global prevPositions
+    global tableSaved
     camParams = []
+    
     for cam in camArray:
         #initialize dummy data for the lookuptables
         if tableInitialized == False:
@@ -77,8 +82,11 @@ def set_voxel_positions(width, height, depth, frame):
         distCoeffs = getDataFromXml(camPath + 'data.xml', 'DistortionCoeffs')
         params  = dict(rvec = rvec, tvec = tvec, cameraMatrix = cameraMatrix, distCoeffs = distCoeffs, foreground = foreground)
         camParams.append(params)
-
+    
     data = []
+    if(const.FORCE_CALIBRATION == False and tableInitialized == False):
+        save = np.load(const.TABLE_PATH)
+        tables = save['table']
     #instantiate grid of voxels. loop over all voxels
     voxels = np.full(shape=(config['world_width'], config['world_height'], config['world_depth']), fill_value=False)
     for x in range(width):
@@ -92,7 +100,7 @@ def set_voxel_positions(width, height, depth, frame):
                     imgpoints = []
                     
                     #if the lookup table is not initialized, we project voor each voxel the imgpoint and store it in the lookup table
-                    if(tableInitialized == False):
+                    if(tableInitialized == False and const.FORCE_CALIBRATION):
                         coord = ( (x - width / 2) * const.SCENE_SCALE_DIV, (y - depth / 2) * const.SCENE_SCALE_DIV, -z* const.SCENE_SCALE_DIV )
                         imagepoints, _ = cv.projectPoints(coord, params["rvec"], params["tvec"], params["cameraMatrix"],
                                                     params["distCoeffs"])
@@ -101,7 +109,8 @@ def set_voxel_positions(width, height, depth, frame):
                         table[x,y,z] = imagepoints
                     else:
                         imagepoints = table[x,y,z]
-
+                            
+    
                     #get the foreground mask of the camera. if the pixel is on for every camera, store the pixel.
                     foreground = params["foreground"]
                     (heightIm, widthIm) = foreground.shape
@@ -114,8 +123,13 @@ def set_voxel_positions(width, height, depth, frame):
                 if isOn:
                     data.append([x * const.BLOCK_SIZE - width / 2, z * const.BLOCK_SIZE , y * const.BLOCK_SIZE - depth / 2])
                     voxels[x,y,z] = True
-    
+
+    if(tableSaved == False and const.FORCE_CALIBRATION == True):
+        np.savez(const.TABLE_PATH, table=tables)
+        tableSaved = True
+
     tableInitialized = True
+
     prevPositions = data
     print("Start Marching Cube")
     marchingCube(voxels)
