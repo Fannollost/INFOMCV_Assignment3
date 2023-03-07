@@ -7,6 +7,7 @@ import cv2 as cv
 from engine.config import config
 from background import get_background_model, get_foreground_mask, get_difference
 from marchingCube import marchingCube
+#from labelling import getCenters
 
 #initialize 'normal' lookup table
 global tables
@@ -130,7 +131,11 @@ def set_voxel_positions(width, height, depth, frame):
 
     tableInitialized = True
 
+    np.savez(const.CLUSTER_PATH, data=data)
+    #getCenters(data)
     prevPositions = data
+
+    #just for debugging the clusters;
     print("Start Marching Cube")
     marchingCube(voxels)
     print("End Marching Cube")
@@ -154,7 +159,7 @@ def set_voxel_positions_xor(width,height,depth,frame):
         params  = dict(rvec = rvec, tvec = tvec, cameraMatrix = cameraMatrix, distCoeffs = distCoeffs)
         camParams.append(params)
 
-    if imgTablesInitialized == False:
+    if imgTablesInitialized == False and const.FORCE_CALIBRATION:
         print(str(width) + ' ' + str(height) + ' ' + str(depth))
         #only for the second frame, we need to calculate and store the voxels corresponding to each image coordinate.
         #we do this by looping over the original voxel table, and appending each voxel to its corresponding projection point
@@ -170,6 +175,12 @@ def set_voxel_positions_xor(width,height,depth,frame):
                         if 0 <= correspondingPixel[0] < heightIm and 0 <= correspondingPixel[1] < widthIm:
                             np.append(imgTable[correspondingPixel[0],correspondingPixel[1]], (x,y,z))
             imgTables[cam[2]] = imgTable
+        imgTablesInitialized = True
+        np.savez(const.IMGTABLE_PATH, imgtables=imgTables)
+    
+    if(imgTablesInitialized == False and const.FORCE_CALIBRATION == False):
+        data = np.load(const.IMGTABLE_PATH)
+        imgTables = data['imgtables']
         imgTablesInitialized = True
 
     newVoxelsOn = []

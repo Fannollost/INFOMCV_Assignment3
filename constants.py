@@ -20,6 +20,9 @@ WINDOW_SIZE = (60,40)
 #images paths for assignment 1
 DATA_PATH   = './data/calibration.npz'
 TABLE_PATH = './data/table.npz'
+IMGTABLE_PATH = './data/imgtable.npz'
+
+CLUSTER_PATH = './data/clusters.npz'
 IMAGES_PATH = './pics/*.jpg'
 IMAGES_PATH_YANNICK = './pics/yannick/test/*.jpg'
 IMAGES_PATH_FABIEN = './pics/fabien/*.jpg'

@@ -174,7 +174,7 @@ def main():
 def resize_callback(window, w, h):
     if h > 0:
         global window_width, window_height, hdrbuffer, blurbuffer
-        window_width, window_height = w, h
+        window_wggidth, window_height = w, h
         glm.perspective(45, window_width / window_height, config['near_plane'], config['far_plane'])
         hdrbuffer.delete()
         hdrbuffer.create(window_width, window_height)

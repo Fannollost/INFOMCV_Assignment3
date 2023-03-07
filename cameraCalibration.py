@@ -183,10 +183,14 @@ def pickCorners(imgpoints, objpoints, objp, img, gray, criteria, showLines = Tru
         showImage(const.WINDOW_NAME, img, 100)
     return imgpoints, objpoints, corners2
 
-def getImagesFromVideo(camera, videoType, amountOfFrames):
+def getImagesFromVideo(camera, videoType, amountOfFrames, at = -1):
     video = cv.VideoCapture(camera + videoType)
     frame_count = int(video.get(cv.CAP_PROP_FRAME_COUNT))
     frames = []
+    if(at != -1):
+        video.set(cv.CAP_PROP_POS_FRAMES, at)
+        ret, frame = video.read()
+        return frame
     for i in range(amountOfFrames):
         frame_number = i * int(frame_count / amountOfFrames)
         video.set(cv.CAP_PROP_POS_FRAMES, frame_number)
