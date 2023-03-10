@@ -71,4 +71,4 @@ BLOCK_SIZE = 1.0
 FRAME_SIZE = 50
 
 marchingCube = False
-CLUSTER_AMOUNT = 3
+CLUSTER_AMOUNT = 4
