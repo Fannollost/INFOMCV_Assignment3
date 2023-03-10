@@ -137,16 +137,12 @@ def set_voxel_positions(width, height, depth, frame):
     np.savez(const.CLUSTER_PATH, data=data)
     #getCenters(data)
     prevPositions = data
-
-    #Trying to get the colors
-    #colors = getColors(const.CAM3[2])
-    print(data)
     pos, col = getColors(const.CAM2[2], np.array(data))
+    if const.marchingCube:
+        print("Start Marching Cube")
+        marchingCube(voxels)
+        print("End Marching Cube")
 
-    #just for debugging the clusters;
-    print("Start Marching Cube")
-    #marchingCube(voxels)
-    print("End Marching Cube")
     return pos, col
 
 def set_voxel_positions_xor(width,height,depth,frame):
