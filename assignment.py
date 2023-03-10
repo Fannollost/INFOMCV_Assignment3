@@ -7,6 +7,7 @@ import cv2 as cv
 from engine.config import config
 from background import get_background_model, get_foreground_mask, get_difference
 from marchingCube import marchingCube
+from labelling import getColors
 #from labelling import getCenters
 
 #initialize 'normal' lookup table
@@ -31,10 +32,12 @@ def generate_grid(width, depth):
     # Generates the floor grid locations
     # You don't need to edit this function
     data = []
+    colors = []
     for x in range(width):
         for z in range(depth):
             data.append([x*const.BLOCK_SIZE - width/2, -const.BLOCK_SIZE, z*const.BLOCK_SIZE - depth/2])
-    return data
+            colors.append([1.0, 1.0, 1.0] if (x+z) % 2 == 0 else [0, 0, 0])
+    return data, colors
 
 #function to retrieve our stored xml data
 def getDataFromXml(filePath, nodeName):
@@ -65,7 +68,7 @@ def set_voxel_positions(width, height, depth, frame):
     global prevPositions
     global tableSaved
     camParams = []
-    
+    colors = []
     for cam in camArray:
         #initialize dummy data for the lookuptables
         if tableInitialized == False:
@@ -135,14 +138,20 @@ def set_voxel_positions(width, height, depth, frame):
     #getCenters(data)
     prevPositions = data
 
+    #Trying to get the colors
+    #colors = getColors(const.CAM3[2])
+    print(data)
+    pos, col = getColors(const.CAM2[2], np.array(data))
+
     #just for debugging the clusters;
     print("Start Marching Cube")
-    marchingCube(voxels)
+    #marchingCube(voxels)
     print("End Marching Cube")
-    return data
+    return pos, col
 
 def set_voxel_positions_xor(width,height,depth,frame):
     #calculate difference in background extraction
+    frame = 480
     global imgTables, imgTablesInitialized, tables, prevPositions
     camArray = [const.CAM1, const.CAM2, const.CAM3, const.CAM4]
     camParams =[]
@@ -205,7 +214,8 @@ def set_voxel_positions_xor(width,height,depth,frame):
             prevPositions.remove(vox)
 
     pos = prevPositions + newVoxelsOn
-    return pos
+    pos, col = getColors(const.CAM2[2], pos)
+    return pos, col
 
 # Generates dummy camera locations at the 4 corners of the room
 # TODO: You need to input the estimated locations of the 4 cameras in the world coordinates.
@@ -219,7 +229,7 @@ def get_cam_positions():
         tvec = getDataFromXml(camArray[i][0] + 'data.xml', 'TVecs')
         camPos = -np.matrix(rotationMatrix).T * np.matrix(np.array(tvec).astype(np.float32)).T
         cam_positions.append([camPos[0]/const.SCENE_SCALE_DIV, -camPos[2]/const.SCENE_SCALE_DIV, camPos[1]/const.SCENE_SCALE_DIV])
-    return cam_positions
+    return cam_positions, [[1,1,1],[1,0,1],[0,1,0],[1,0,0]]
 
 # Generates dummy camera rotation matrices, looking down 45 degrees towards the center of the room
 # TODO: You need to input the estimated camera rotation matrices (4x4) of the 4 cameras in the world coordinates.

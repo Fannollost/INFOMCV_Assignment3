@@ -14,7 +14,7 @@ cube, hdrbuffer, blurbuffer, lastPosX, lastPosY = None, None, None, None, None
 frame = 0
 firstTime = True
 window_width, window_height = config['window_width'], config['window_height']
-camera = Camera(glm.vec3(0, 100, 0), pitch=-90, yaw=0, speed=40)
+camera = Camera(glm.vec3(0, 10, 50), pitch=0, yaw=-90, speed=40)
 
 def draw_objs(obj, program, perspective, light_pos, texture, normal, specular, depth):
     program.use()
@@ -117,12 +117,12 @@ def main():
     depth = load_texture_2d('resources/textures/depth.jpg')
     depth_grid = load_texture_2d('resources/textures/depth_grid.jpg')
 
-    grid_positions = generate_grid(config['world_width'], config['world_width'])
-    square.set_multiple_positions(grid_positions)
+    grid_positions, grid_colors = generate_grid(config['world_width'], config['world_width'])
+    square.set_multiple_positions(grid_positions, grid_colors)
 
-    cam_positions = get_cam_positions()
+    cam_positions, cam_colors = get_cam_positions()
     for c, cam_pos in enumerate(cam_positions):
-        cam_shapes[c].set_multiple_positions([cam_pos])
+        cam_shapes[c].set_multiple_positions([cam_pos], [cam_colors[c]])
 
     last_time = glfw.get_time()
     while not glfw.window_should_close(window):
@@ -161,9 +161,9 @@ def main():
         if(frame != 0):
             #uncomment/comment either set_voxel_positions or  set_voxel_positions_xor
             #positions = set_voxel_positions(config['world_width'], config['world_height'], config['world_width'],frame)
-            positions = set_voxel_positions_xor(config['world_width'], config['world_height'], config['world_width'],frame)
-            cube.set_multiple_positions(positions)
-            frame += 1
+            positions, colors = set_voxel_positions(config['world_width'], config['world_height'], config['world_width'],frame)
+            cube.set_multiple_positions(positions, colors)
+            frame += 200
         glfw.poll_events()
         glfw.swap_buffers(window)
        
@@ -188,8 +188,8 @@ def key_callback(window, key, scancode, action, mods):
     if key == glfw.KEY_G and action == glfw.PRESS:
         global cube, frame
         frame = 0
-        positions = set_voxel_positions(config['world_width'], config['world_height'], config['world_width'], 0)
-        cube.set_multiple_positions(positions)
+        positions, colors = set_voxel_positions(config['world_width'], config['world_height'], config['world_width'], 0)
+        cube.set_multiple_positions(positions, colors)
         #remove this inorder to  render it every frame again for videos.
         frame = 1
 
