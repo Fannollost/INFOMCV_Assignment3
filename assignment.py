@@ -131,9 +131,10 @@ def set_voxel_positions(width, height, depth, frame):
     tableInitialized = True
 
     prevPositions = data
-    print("Start Marching Cube")
-    marchingCube(voxels)
-    print("End Marching Cube")
+    if const.marchingCube:
+        print("Start Marching Cube")
+        marchingCube(voxels)
+        print("End Marching Cube")
     return data
 
 def set_voxel_positions_xor(width,height,depth,frame):

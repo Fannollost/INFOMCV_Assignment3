@@ -48,16 +48,16 @@ def backgroundModel(camera, videoType):
             for k in range(3):
                 res[i, j, k] = Stats()
 
-    i = 0
+    frameNb=0
     for frame in frames:
         frame = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
         l,c,_ = frame.shape
+        print(str(100 * (frameNb + 1) / len(frames)) + " %")
         for i in range(l):
-            print(str(100*(i+1)/len(frames)) + " %")
             for j in range(c):
                 for k in range(3):
                     res[i,j,k].add(frame[i,j,k])
-        i +=1
+        frameNb += 1
     return res
 
 # Given a background model value and the actual value (of the image with a foreground)
@@ -117,6 +117,7 @@ def getAxisAlignedCross(size):
                 res[i,j] = 1
     return res
 
+
 # Function to compute the mask where white pixel means the pixel is considered as foreground and black mean considered as background.
 def substractBackground(camera, videoType, model, frame):
     global lastFrame
@@ -142,9 +143,9 @@ def substractBackground(camera, videoType, model, frame):
             raw[i,j] = mask(model[i, j], frame[i, j])
 
     #erode and dilate the background image to fill holes and get rid of as much noise as possible.
-    raw = cv.morphologyEx(raw, cv.MORPH_OPEN, cv.getStructuringElement(cv.MORPH_ELLIPSE, (3, 3)))
-    raw = cv.morphologyEx(raw, cv.MORPH_OPEN, getAxisAlignedCross((5,3)))
-    raw = cv.morphologyEx(raw, cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (3, 3)))
+    raw = cv.morphologyEx(raw, cv.MORPH_CLOSE, getVerticalLine(5))
+    raw = cv.morphologyEx(raw, cv.MORPH_OPEN, cv.getStructuringElement(cv.MORPH_ELLIPSE, (9, 3)))
+
 
     # Setting global variable for click event (debuging)
     m = model
@@ -154,6 +155,7 @@ def substractBackground(camera, videoType, model, frame):
     #showImage(const.WINDOW_NAME, raw)
     #cv.setMouseCallback(const.WINDOW_NAME, click_event)
 
+
     #find the contours of the image
     contours, _ = cv.findContours(raw, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
     big_blobs = []
@@ -162,7 +164,7 @@ def substractBackground(camera, videoType, model, frame):
     if len(contours) > 0:
         for i in range(len(contours)):
             contour_area = cv.contourArea(contours[i]);
-            if contour_area > 5000:
+            if contour_area > 1000:
                 big_blobs.append(i)
 
     #only keep the big blobs in order to get rid of noise.

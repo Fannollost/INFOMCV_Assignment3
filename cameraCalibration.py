@@ -358,7 +358,7 @@ def main(currentCam):
         cap.release()
     else:    
         #draw axis and cube on test image
-        frames = getImagesFromVideo(camera, const.VIDEO_CHECKERBOARD, 1)
+        frames = getImagesFromVideo(camera, const.VIDEO_EXTRINSICS, 1)
         img = drawOrigin(frames[0], criteria, objp, mtx, dist, camera=camera)
         showImage(const.WINDOW_NAME, img, 0)
 
@@ -376,6 +376,6 @@ if __name__ == "__main__":
     objp[:,:2] = (const.SQUARE_SIZE * np.mgrid[0:const.BOARD_SIZE[0], 0:const.BOARD_SIZE[1]]).T.reshape(-1,2)
 
     for cam in camArray:
-        frames = getImagesFromVideo(cam[0], const.VIDEO_CHECKERBOARD, 1)
+        frames = getImagesFromVideo(cam[0], const.VIDEO_EXTRINSICS, 1)
         img = drawOrigin(frames[0], criteria, objp, mtx, dist, False, cam[0])
         showImage(const.WINDOW_NAME, img, 0)

@@ -49,7 +49,7 @@ SELECTED_CAM = CAM2
 
 #videos
 VIDEO_INTRINSICS = 'intrinsics.avi'
-VIDEO_CHECKERBOARD = 'checkerboard.avi'
+VIDEO_EXTRINSICS = 'checkerboard.avi'
 VIDEO_BACKGROUND = 'background.avi'
 VIDEO_TEST = 'video.avi'
 SELECTED_VIDEO = VIDEO_INTRINSICS
@@ -66,3 +66,5 @@ THRESHOLD = 160
 SCENE_SCALE_DIV = 40
 BLOCK_SIZE = 1.0
 FRAME_SIZE = 50
+
+marchingCube = False
