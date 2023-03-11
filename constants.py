@@ -40,7 +40,7 @@ CUBE_AXIS = np.float32([[0,0,0], [0,1,0], [1,1,0], [1,0,0],
 
 #settings
 WEBCAM = False
-FORCE_CALIBRATION = False
+FORCE_CALIBRATION = True
 FORCE_BACKGROUND = False
 REJECT_LOW_QUALITY = True
 
@@ -71,5 +71,5 @@ SCENE_SCALE_DIV = 40
 BLOCK_SIZE = 1.0
 FRAME_SIZE = 50
 
-marchingCube = False
+MARCHING_CUBE = False
 CLUSTER_AMOUNT = 4
