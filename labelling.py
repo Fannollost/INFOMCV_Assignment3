@@ -3,7 +3,6 @@ import constants as const
 import cv2 as cv
 import numpy as np
 
-
 global imgTable
 imgtable =[0,0,0,0]
 
@@ -55,8 +54,8 @@ def getColors(cam, data):
     #print(clusters)
     histograms = [None] * const.CLUSTER_AMOUNT
     frame = getFrame()
-    frame = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
-
+    frame = cv.cvtColor(frame, cv.COLOR_RGB2HSV)
+    #showImage('frame', frame, 0)
     orderedPos = []
     orderedCol = []
     for i in range(const.CLUSTER_AMOUNT):
@@ -67,8 +66,9 @@ def getColors(cam, data):
 
             heightIm = 644
             widthIm = 486
-            if int(heightIm / 2) <= imgPoint[0] < heightIm and 0 <= imgPoint[1] < widthIm:
+            if 0 <= imgPoint[0] < heightIm and 0 <= imgPoint[1] < widthIm:
                 color = frame[imgPoint[0], imgPoint[1]]
+                print(color[0])
                 histogram[int(np.floor(color[2] / 10))] += 1 #check H value put it in bin
                 total += 1
             #else:
@@ -80,16 +80,16 @@ def getColors(cam, data):
         #print(histograms)
         for voxel in clusters[i]:
             orderedPos.append(voxel)
-            colorModel = [(np.argmax(histograms[i]) * 10) / 255, (np.argmax(histograms[i]) * i * 10) / 255, i / 2]
+            colorModel = [(np.argmax(histograms[i]) * 10), (np.argmax(histograms[i]) * i * 10), i / 2]
             
             if isTrained:
-                lowestDistance = 3000 #placeholder for distance
+                lowestDistance = 300000 #placeholder for distance
                 index = 0
                 for j in range(len(histogramModels)):
                     h = histogramModels[j]
                     distance = 0
                     for b in range(len(h)):
-                        distance += histogram[b] - h[b]
+                        distance += abs(histogram[b] - h[b])
                     if distance < lowestDistance: 
                         lowestDistance = distance
                         index = j
@@ -102,5 +102,3 @@ def getColors(cam, data):
                 colorModels[i] = (centers[i], colorModel)
     isTrained = True
     return orderedPos, orderedCol
-
-#getColors(2,0)
