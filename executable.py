@@ -163,7 +163,7 @@ def main():
             #positions = set_voxel_positions(config['world_width'], config['world_height'], config['world_width'],frame)
             positions, colors = set_voxel_positions(config['world_width'], config['world_height'], config['world_width'],frame)
             cube.set_multiple_positions(positions, colors)
-            frame += 1
+            frame += 50
         glfw.poll_events()
         glfw.swap_buffers(window)
        

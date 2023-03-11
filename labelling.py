@@ -67,8 +67,8 @@ def getColors(cam, data):
 
             heightIm = 644
             widthIm = 486
-            if 0 <= imgPoint[0] < int(heightIm / 2) and 0 <= imgPoint[1] < widthIm:
-                color = frame[imgPoint[1], imgPoint[0]]
+            if int(heightIm / 2) <= imgPoint[0] < heightIm and 0 <= imgPoint[1] < widthIm:
+                color = frame[imgPoint[0], imgPoint[1]]
                 histogram[int(np.floor(color[2] / 10))] += 1 #check H value put it in bin
                 total += 1
             #else:
@@ -76,14 +76,30 @@ def getColors(cam, data):
         histograms[i] = histogram / total
         #colors[i] = [np.argmax(histogram) * 10, 0, 0]
         if not isTrained:
-            histogramModels[i]
+            histogramModels[i] = histogram / total
         #print(histograms)
         for voxel in clusters[i]:
             orderedPos.append(voxel)
             colorModel = [(np.argmax(histograms[i]) * 10) / 255, (np.argmax(histograms[i]) * i * 10) / 255, i / 2]
             
-            orderedCol.append(colorModel)
-            colorModels[i] = (centers[i], colorModel)
+            if isTrained:
+                lowestDistance = 3000 #placeholder for distance
+                index = 0
+                for j in range(len(histogramModels)):
+                    h = histogramModels[j]
+                    distance = 0
+                    for b in range(len(h)):
+                        distance += histogram[b] - h[b]
+                    if distance < lowestDistance: 
+                        lowestDistance = distance
+                        index = j
+                original = colorModels[index]
+                #needto track a list of centers
+                colorModels[index] = (centers[i], original[1])
+                orderedCol.append(original[1])
+            else:
+                orderedCol.append(colorModel)
+                colorModels[i] = (centers[i], colorModel)
     isTrained = True
     return orderedPos, orderedCol
 
