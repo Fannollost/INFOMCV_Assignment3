@@ -75,11 +75,16 @@ def set_voxel_positions(width, height, depth, frame):
             tables[cam[2]] = np.full(shape = (config['world_width'],config['world_height'],config['world_depth'], 2), fill_value= [-1,-1])
             
             #train the background model
-            get_background_model(cam)
+            if const.FORCE_BACKGROUND:
+                get_background_model(cam)
 
         #initialize camera parameters
         camPath = cam[0]
-        foreground = get_foreground_mask(cam, frame)
+        if const.FORCE_BACKGROUND:
+            foreground = get_foreground_mask(cam, frame)
+        else:
+            foreground = cv.imread(camPath+"foreground.png",cv.IMREAD_GRAYSCALE)
+        #foreground = get_foreground_mask(cam, frame)
         rvec = getDataFromXml(camPath + 'data.xml', 'RVecs')
         tvec = getDataFromXml(camPath + 'data.xml', 'TVecs')
         cameraMatrix = getDataFromXml(camPath + 'data.xml', 'CameraMatrix')

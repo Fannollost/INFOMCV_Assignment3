@@ -41,6 +41,7 @@ CUBE_AXIS = np.float32([[0,0,0], [0,1,0], [1,1,0], [1,0,0],
 #settings
 WEBCAM = False
 FORCE_CALIBRATION = False
+FORCE_BACKGROUND = False
 REJECT_LOW_QUALITY = True
 
 #video paths

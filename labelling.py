@@ -7,8 +7,12 @@ import numpy as np
 global imgTable
 imgtable =[0,0,0,0]
 
-global colorModels
+global colorModels, histogramModels
+histogramModels = [None] * const.CLUSTER_AMOUNT
 colorModels = [None] * const.CLUSTER_AMOUNT
+
+global isTrained
+isTrained = False
 
 def getFrame():
     #get a good frame from camera2
@@ -36,7 +40,7 @@ def getCenters(data):
 #initial
 def getColors(cam, data):
     
-    global colorModels
+    global colorModels, isTrained, histogramModels
     #data = np.load(const.CLUSTER_PATH)
     #data = data['data']
     d, centers, labels = getCenters(data)
@@ -55,7 +59,7 @@ def getColors(cam, data):
 
     orderedPos = []
     orderedCol = []
-    for i in range(3):
+    for i in range(const.CLUSTER_AMOUNT):
         histogram = np.zeros(26) #bin count
         total = 0
         for voxel in clusters[i]:
@@ -71,13 +75,16 @@ def getColors(cam, data):
             #    colors.append([0,0,0])
         histograms[i] = histogram / total
         #colors[i] = [np.argmax(histogram) * 10, 0, 0]
+        if not isTrained:
+            histogramModels[i]
         #print(histograms)
         for voxel in clusters[i]:
             orderedPos.append(voxel)
             colorModel = [(np.argmax(histograms[i]) * 10) / 255, (np.argmax(histograms[i]) * i * 10) / 255, i / 2]
+            
             orderedCol.append(colorModel)
             colorModels[i] = (centers[i], colorModel)
-
+    isTrained = True
     return orderedPos, orderedCol
 
 #getColors(2,0)
