@@ -9,6 +9,11 @@ from engine.effect.bloom import Bloom
 from assignment import set_voxel_positions, generate_grid, get_cam_positions, get_cam_rotation_matrices, set_voxel_positions_xor
 from engine.camera import Camera
 from engine.config import config
+from concurrent import futures
+
+thread_pool_executor = futures.ProcessPoolExecutor(max_workers=2)
+backgroundProcess = None
+finished = False
 
 cube, hdrbuffer, blurbuffer, lastPosX, lastPosY = None, None, None, None, None
 frame = 0
@@ -44,7 +49,7 @@ def draw_objs(obj, program, perspective, light_pos, texture, normal, specular, d
 
 
 def main():
-    global hdrbuffer, blurbuffer, cube, window_width, window_height, frame
+    global hdrbuffer, blurbuffer, cube, window_width, window_height, frame, backgroundProcess
 
     if not glfw.init():
         print('Failed to initialize GLFW.')
@@ -153,17 +158,20 @@ def main():
         for cam in cam_shapes:
             draw_objs(cam, program, perspective, light_pos, texture_grid, normal_grid, specular_grid, depth_grid)
 
+        if frame != 0 and backgroundProcess.done():
+            if (backgroundProcess.exception() != None):
+                raise backgroundProcess.exception()
+            positions, colors = backgroundProcess.result()
+            cube.set_multiple_positions(positions, colors)
+            frame += 1
+            backgroundProcess = thread_pool_executor.submit(set_voxel_positions, config['world_width'],
+                                                            config['world_height'],
+                                                            config['world_width'], frame)
         hdrbuffer.unbind()
         hdrbuffer.finalize()
 
         bloom.draw_processed_scene()
 
-        if(frame != 0):
-            #uncomment/comment either set_voxel_positions or  set_voxel_positions_xor
-            #positions = set_voxel_positions(config['world_width'], config['world_height'], config['world_width'],frame)
-            positions, colors = set_voxel_positions(config['world_width'], config['world_height'], config['world_width'],frame)
-            cube.set_multiple_positions(positions, colors)
-            frame += 1
         glfw.poll_events()
         glfw.swap_buffers(window)
        
@@ -186,10 +194,9 @@ def key_callback(window, key, scancode, action, mods):
     if key == glfw.KEY_ESCAPE and action == glfw.PRESS:
         glfw.set_window_should_close(window, glfw.TRUE)
     if key == glfw.KEY_G and action == glfw.PRESS:
-        global cube, frame
+        global cube, frame, backgroundProcess
         frame = 0
-        positions, colors = set_voxel_positions(config['world_width'], config['world_height'], config['world_width'], 0)
-        cube.set_multiple_positions(positions, colors)
+        backgroundProcess = thread_pool_executor.submit(set_voxel_positions, config['world_width'], config['world_height'], config['world_width'], 0)
         #remove this inorder to  render it every frame again for videos.
         frame = 1
 
