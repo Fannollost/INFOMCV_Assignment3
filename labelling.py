@@ -63,7 +63,6 @@ def getColors(cam, data):
         total = 0
         for voxel in clusters[i]:
             imgPoint = table[int(voxel[0]), int(voxel[2]), int(voxel[1])]
-
             heightIm = 644
             widthIm = 486
             if int(heightIm / 3) <= imgPoint[0] < heightIm and 0 <= imgPoint[1] < widthIm:

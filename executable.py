@@ -163,7 +163,7 @@ def main():
                 raise backgroundProcess.exception()
             positions, colors = backgroundProcess.result()
             cube.set_multiple_positions(positions, colors)
-            frame += 10
+            frame += 20
             backgroundProcess = thread_pool_executor.submit(set_voxel_positions, config['world_width'],
                                                             config['world_height'],
                                                             config['world_width'], frame)
