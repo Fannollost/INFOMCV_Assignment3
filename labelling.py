@@ -66,9 +66,8 @@ def getColors(cam, data):
 
             heightIm = 644
             widthIm = 486
-            if 0 <= imgPoint[0] < heightIm and 0 <= imgPoint[1] < widthIm:
-                color = frame[imgPoint[0], imgPoint[1]]
-                print(color[0])
+            if int(heightIm / 3) <= imgPoint[0] < heightIm and 0 <= imgPoint[1] < widthIm:
+                color = frame[imgPoint[1], imgPoint[0]]
                 histogram[int(np.floor(color[2] / 10))] += 1 #check H value put it in bin
                 total += 1
             #else:
@@ -80,8 +79,15 @@ def getColors(cam, data):
         #print(histograms)
         for voxel in clusters[i]:
             orderedPos.append(voxel)
-            colorModel = [(np.argmax(histograms[i]) * 10), (np.argmax(histograms[i]) * i * 10), i / 2]
-            
+            match i:
+                case 0: 
+                    colorModel = [(np.argmax(histograms[i]) * 10) / 255, (np.argmax(histograms[i]) * 10) / 255, (np.argmax(histograms[i]) * 10) / 255]
+                case 1: 
+                    colorModel = [0, (np.argmax(histograms[i]) * 10) / 255, 0]
+                case 2: 
+                    colorModel = [0, 0, (np.argmax(histograms[i]) * 10) / 255]
+                case 3: 
+                    colorModel = [(np.argmax(histograms[i]) * 10) / 255,0, 0]
             if isTrained:
                 lowestDistance = 300000 #placeholder for distance
                 index = 0

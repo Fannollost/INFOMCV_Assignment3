@@ -211,7 +211,7 @@ def get_difference(camera, frame):
                     newpixelson.append((x,y))
     
     return newpixelsoff, newpixelson, res
-
+    
 if __name__ == "__main__":
     camArray = [const.CAM1, const.CAM2, const.CAM3, const.CAM4]
     for i in range(4):
