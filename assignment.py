@@ -16,6 +16,7 @@ global tableInitalized
 tables = [0,0,0,0]
 tableInitialized = False
 
+background_models = []
 #initialize the 'xor' lookup table
 global imgTables
 global imgTablesInitialized
@@ -248,6 +249,3 @@ def get_cam_rotation_matrices():
         #transform from radians to degrees.
         cam_rotations[c] = glm.rotate(cam_rotations[c], -np.pi/2 , [0, 1, 0])
     return cam_rotations
-
-
-get_cam_positions()
