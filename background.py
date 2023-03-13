@@ -5,7 +5,7 @@ import constants as const
 import numpy as np
 from cameraCalibration import getImagesFromVideo, showImage
 
-models = []
+models = [None,None,None,None]
 lastFrame = []
 
 class Stats(object):
@@ -41,12 +41,13 @@ def backgroundModel(camera, videoType):
     video = cv.VideoCapture(camera + videoType)
     c = int(video.get(cv.CAP_PROP_FRAME_WIDTH ))
     l = int(video.get(cv.CAP_PROP_FRAME_HEIGHT))
-    res = np.empty((l, c, 3), dtype=object)
+    res = np.empty((l, c, 3, 2))
+    stats = np.empty((l, c, 3), dtype=object)
     frames = getImagesFromVideo(camera, videoType, const.IMAGES_BACKGROUND_NB)
     for i in range(l):
         for j in range(c):
             for k in range(3):
-                res[i, j, k] = Stats()
+                stats[i, j, k] = Stats()
 
     frameNb=0
     for frame in frames:
@@ -56,18 +57,23 @@ def backgroundModel(camera, videoType):
         for i in range(l):
             for j in range(c):
                 for k in range(3):
-                    res[i,j,k].add(frame[i,j,k])
+                    stats[i,j,k].add(frame[i,j,k])
         frameNb += 1
+    for i in range(l):
+        for j in range(c):
+            for k in range(3):
+                res[i, j, k, const.MEAN] = stats[i, j, k].mean
+                res[i, j, k, const.STD] = stats[i, j, k].std
     return res
 
 # Given a background model value and the actual value (of the image with a foreground)
 # Computes the number of Standard deviation between the model and the foreground image
 def channelDist(model, val, dim):
-    delta = model[dim].mean - val[dim]
+    delta = model[dim][const.MEAN] - val[dim]
     if delta < 0:
         delta = -delta
-    if model[dim].std > 0.5:
-        return delta/model[dim].std
+    if model[dim][const.STD] > 0.5:
+        return delta/model[dim][const.STD]
     else :
         return delta * 2
 
@@ -177,7 +183,7 @@ def substractBackground(camera, videoType, model, frame):
     # Show keypoints
     #showImage(const.WINDOW_NAME, res, 0)
     lastFrame = res
-    cv.imwrite(camera+"foreground.png", res)
+    #cv.imwrite(camera+"foreground.png", res)
     return res
 
 # Gets the foreground mask by subtracting the background from the current frame
@@ -186,9 +192,19 @@ def get_foreground_mask(camera, frame):
     return res
 
 # Gets the background model for the camera
-def get_background_model(camera):
-    model = backgroundModel(camera[0], const.VIDEO_BACKGROUND)
-    models.append(model)
+def get_background_model():
+    global models
+    camArray = [const.CAM1, const.CAM2, const.CAM3, const.CAM4]
+    if const.FORCE_BACKGROUND:
+        for camera in camArray:
+            model = backgroundModel(camera[0], const.VIDEO_BACKGROUND)
+            models[camera[2]] = model
+    else :
+        save = np.load(const.BACKGROUND_PATH)
+        models = save['models']
+
+def save_background_model():
+    np.savez(const.BACKGROUND_PATH, models=models)
 
 # Returns the pixels that switched from on to off or viceversa
 def get_difference(camera, frame):

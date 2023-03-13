@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 import constants as const
 import cv2 as cv
 from engine.config import config
-from background import get_background_model, get_foreground_mask, get_difference
+from background import get_background_model, get_foreground_mask, save_background_model, get_difference
 from marchingCube import marchingCube
 from labelling import getColors
 #from labelling import getCenters
@@ -69,29 +69,29 @@ def set_voxel_positions(width, height, depth, frame):
     global tableSaved
     camParams = []
     colors = []
-    for cam in camArray:
-        #initialize dummy data for the lookuptables
-        if tableInitialized == False:
-            tables[cam[2]] = np.full(shape = (config['world_width'],config['world_depth'],config['world_height'], 2), fill_value= [-1,-1])
-            
-            #train the background model
-            if const.FORCE_BACKGROUND:
-                get_background_model(cam)
 
+    if tableInitialized == False:
+        # initialize dummy data for the lookuptables
+        tables = np.full(shape=(4,config['world_width'], config['world_depth'], config['world_height'], 2),
+                                 fill_value=[-1, -1])
+        # train the background model
+        get_background_model()
+        if const.FORCE_BACKGROUND:
+            save_background_model()
+
+    for cam in camArray:
         #initialize camera parameters
         camPath = cam[0]
-        if const.FORCE_BACKGROUND:
-            foreground = get_foreground_mask(cam, frame)
-        else:
-            foreground = cv.imread(camPath+"foreground.png",cv.IMREAD_GRAYSCALE)
-        #foreground = get_foreground_mask(cam, frame)
         rvec = getDataFromXml(camPath + 'data.xml', 'RVecs')
         tvec = getDataFromXml(camPath + 'data.xml', 'TVecs')
         cameraMatrix = getDataFromXml(camPath + 'data.xml', 'CameraMatrix')
         distCoeffs = getDataFromXml(camPath + 'data.xml', 'DistortionCoeffs')
+        foreground = get_foreground_mask(cam, frame)
         params  = dict(rvec = rvec, tvec = tvec, cameraMatrix = cameraMatrix, distCoeffs = distCoeffs, foreground = foreground)
         camParams.append(params)
-    
+
+
+
     data = []
     if(const.FORCE_CALIBRATION == False and tableInitialized == False):
         save = np.load(const.TABLE_PATH)
@@ -99,7 +99,8 @@ def set_voxel_positions(width, height, depth, frame):
     #instantiate grid of voxels. loop over all voxels
     voxels = np.full(shape=(config['world_width'], config['world_depth'], config['world_height']), fill_value=False)
     for x in range(width):
-        print(str(100*(x+1)/width) + " %")
+        if x%10 == 0 or x+1 == width:
+            print(str(100*(x+1)/width) + " %")
         for y in range(height):
             for z in range(depth):
                 isOn = True

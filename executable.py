@@ -163,7 +163,7 @@ def main():
                 raise backgroundProcess.exception()
             positions, colors = backgroundProcess.result()
             cube.set_multiple_positions(positions, colors)
-            frame += 1
+            frame += 50
             backgroundProcess = thread_pool_executor.submit(set_voxel_positions, config['world_width'],
                                                             config['world_height'],
                                                             config['world_width'], frame)
@@ -196,9 +196,10 @@ def key_callback(window, key, scancode, action, mods):
     if key == glfw.KEY_G and action == glfw.PRESS:
         global cube, frame, backgroundProcess
         frame = 0
-        backgroundProcess = thread_pool_executor.submit(set_voxel_positions, config['world_width'], config['world_height'], config['world_width'], 0)
-        #remove this inorder to  render it every frame again for videos.
-        frame = 1
+        if backgroundProcess == None:
+            backgroundProcess = thread_pool_executor.submit(set_voxel_positions, config['world_width'], config['world_height'], config['world_width'], 0)
+            #remove this inorder to  render it every frame again for videos.
+            frame = 1
 
 
 def mouse_move(win, pos_x, pos_y):

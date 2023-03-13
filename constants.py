@@ -20,6 +20,7 @@ WINDOW_SIZE = (60,40)
 #images paths for assignment 1
 DATA_PATH   = './data/calibration.npz'
 TABLE_PATH = './data/table.npz'
+BACKGROUND_PATH = './data/background.npz'
 IMGTABLE_PATH = './data/imgtable.npz'
 
 CLUSTER_PATH = './data/clusters.npz'
@@ -40,7 +41,7 @@ CUBE_AXIS = np.float32([[0,0,0], [0,1,0], [1,1,0], [1,0,0],
 
 #settings
 WEBCAM = False
-FORCE_CALIBRATION = True
+FORCE_CALIBRATION = False
 FORCE_BACKGROUND = False
 REJECT_LOW_QUALITY = True
 
@@ -70,6 +71,9 @@ THRESHOLD = 160
 SCENE_SCALE_DIV = 40
 BLOCK_SIZE = 1.0
 FRAME_SIZE = 50
+
+MEAN=0
+STD=1
 
 MARCHING_CUBE = False
 CLUSTER_AMOUNT = 4

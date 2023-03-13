@@ -60,31 +60,57 @@ def getColors(cam, data):
     orderedPos = []
     orderedCol = []
     for i in range(const.CLUSTER_AMOUNT):
-        histogram = np.zeros(26) #bin count
+        histogram = np.zeros((26,3)) #bin count
         total = 0
+        (heightIm, widthIm, _) = frame.shape
+        debug = np.zeros((heightIm, widthIm, 3))
+
         for voxel in clusters[i]:
             imgPoint = table[int(voxel[0]), int(voxel[2]), int(voxel[1])]
-
-            heightIm = 644
-            widthIm = 486
-            if 0 <= imgPoint[0] < int(heightIm / 2) and 0 <= imgPoint[1] < widthIm:
-                color = frame[imgPoint[1], imgPoint[0]]
-                histogram[int(np.floor(color[2] / 10))] += 1 #check H value put it in bin
+            if int(heightIm / 3) <= imgPoint[0] < heightIm and 0 <= imgPoint[1] < widthIm  :
+                debug[imgPoint[0], imgPoint[1]] = frame[imgPoint[0], imgPoint[1]]
+                color = frame[imgPoint[0], imgPoint[1]]
+                frame[imgPoint[0], imgPoint[1]] = [255,255,255]
+                for j in range(3):
+                    histogram[int(np.floor(color[j] / 10)),j] += 1 #check H value put it in bin
                 total += 1
             #else:
             #    colors.append([0,0,0])
+        cv.imwrite("./data/debug"+str(i)+".png", debug)
+        cv.imwrite("./data/frame.png", frame)
         histograms[i] = histogram / total
         #colors[i] = [np.argmax(histogram) * 10, 0, 0]
         if not isTrained:
-            histogramModels[i]
+            histogramModels[i] = histograms[i]
         #print(histograms)
         for voxel in clusters[i]:
             orderedPos.append(voxel)
-            colorModel = [(np.argmax(histograms[i]) * 10) / 255, (np.argmax(histograms[i]) * i * 10) / 255, i / 2]
-            
-            orderedCol.append(colorModel)
-            colorModels[i] = (centers[i], colorModel)
+            # What is the next line computing as histograms is only based on hue
+            # colorModel = [(np.argmax(list(item[0] for item in histograms[i])) * 10) / 255, (np.argmax(list(item[0] for item in histograms[i])) * i * 10) / 255, i / 2]
+            maxColor = np.uint8([[[(np.argmax(list(item[0] for item in histogram)) * 10), (np.argmax(list(item[1] for item in histogram))* 10), (np.argmax(list(item[2] for item in histogram))* 10)]]])
+            colorModel = cv.cvtColor(maxColor, cv.COLOR_HSV2RGB)
+            colorModel = colorModel[0,0] /255
+            if isTrained:
+                lowestDistance = 300000 #placeholder for distance
+                index = 0
+                for j in range(len(histogramModels)):
+                    h = histogramModels[j]
+                    distance = 0
+                    for b in range(len(h)):
+                        for i in range(3):
+                            distance += abs(histogram[b,i] - h[b,i])
+                    if distance < lowestDistance:
+                        lowestDistance = distance
+                        index = j
+                original = colorModels[index]
+                #needto track a list of centers
+                colorModels[index] = (centers[i], original[1])
+                orderedCol.append(original[1])
+            else:
+                orderedCol.append(colorModel)
+                colorModels[i] = (centers[i], colorModel)
+                # colorModels = [(centers[0], [255, 0, 0]), (centers[1], [0, 255, 0]), (centers[2], [0, 0, 255]),
+                #               (centers[3], [255, 255, 0])]
+                # orderedCol = [ [255,0,0], [0,255,0], [0,0,255], [255,255,0]]
     isTrained = True
     return orderedPos, orderedCol
-
-#getColors(2,0)
