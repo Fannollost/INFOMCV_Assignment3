@@ -1,4 +1,5 @@
 from cameraCalibration import showImage, getImagesFromVideo
+from engine.config import config
 import constants as const
 import cv2 as cv
 import numpy as np
@@ -39,7 +40,7 @@ def getCenters(data):
     
 #initial
 def getColors(cam, data):
-    
+
     global colorModels, isTrained, histogramModels
     #data = np.load(const.CLUSTER_PATH)
     #data = data['data']
@@ -48,6 +49,10 @@ def getColors(cam, data):
     lookupTable = savedTable['table']
     table = lookupTable[cam]
 
+    width = config['world_width']
+    height = config['world_height']
+    depth = config['world_depth']
+
     clusters = [None] * const.CLUSTER_AMOUNT
     for i in range(len(clusters)):
         clusters[i] = d[labels.ravel()==i]
@@ -55,7 +60,7 @@ def getColors(cam, data):
     #print(clusters)
     histograms = [None] * const.CLUSTER_AMOUNT
     frame = getFrame()
-    frame = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+    frame = cv.cvtColor(frame, cv.COLOR_RGB2HSV)
 
     orderedPos = []
     orderedCol = []
@@ -66,18 +71,16 @@ def getColors(cam, data):
         debug = np.zeros((heightIm, widthIm, 3))
 
         for voxel in clusters[i]:
-            imgPoint = table[int(voxel[0]), int(voxel[2]), int(voxel[1])]
-            if int(heightIm / 3) <= imgPoint[0] < heightIm and 0 <= imgPoint[1] < widthIm  :
-                debug[imgPoint[0], imgPoint[1]] = frame[imgPoint[0], imgPoint[1]]
+            imgPoint = table[int(voxel[0]+width/2), int(voxel[2]+depth/2), int(voxel[1])]
+            if int(heightIm / 4) <= imgPoint[0] < (2*heightIm/4) and 0 <= imgPoint[1] < widthIm  :
                 color = frame[imgPoint[0], imgPoint[1]]
-                frame[imgPoint[0], imgPoint[1]] = [255,255,255]
+                debug[imgPoint[0], imgPoint[1]] = color # cv.cvtColor(np.array([[color]]), cv.COLOR_HSV2RGB)[0,0]
                 for j in range(3):
                     histogram[int(np.floor(color[j] / 10)),j] += 1 #check H value put it in bin
                 total += 1
             #else:
             #    colors.append([0,0,0])
         cv.imwrite("./data/debug"+str(i)+".png", debug)
-        cv.imwrite("./data/frame.png", frame)
         histograms[i] = histogram / total
         #colors[i] = [np.argmax(histogram) * 10, 0, 0]
         if not isTrained:
@@ -88,8 +91,8 @@ def getColors(cam, data):
             # What is the next line computing as histograms is only based on hue
             # colorModel = [(np.argmax(list(item[0] for item in histograms[i])) * 10) / 255, (np.argmax(list(item[0] for item in histograms[i])) * i * 10) / 255, i / 2]
             maxColor = np.uint8([[[(np.argmax(list(item[0] for item in histogram)) * 10), (np.argmax(list(item[1] for item in histogram))* 10), (np.argmax(list(item[2] for item in histogram))* 10)]]])
-            colorModel = cv.cvtColor(maxColor, cv.COLOR_HSV2RGB)
-            colorModel = colorModel[0,0] /255
+            #colorModel = cv.cvtColor(maxColor, cv.COLOR_HSV2RGB)
+            colorModel = maxColor[0,0] /255
             if isTrained:
                 lowestDistance = 300000 #placeholder for distance
                 index = 0
