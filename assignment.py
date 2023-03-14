@@ -133,21 +133,23 @@ def set_voxel_positions(width, height, depth, frame):
                 if isOn:
                     data.append([x * const.BLOCK_SIZE - width / 2, y * const.BLOCK_SIZE , z * const.BLOCK_SIZE - depth / 2])
                     voxels[x,z,y] = True
-
+    print("A")
     if(tableSaved == False and const.FORCE_CALIBRATION == True):
         np.savez(const.TABLE_PATH, table=tables)
         tableSaved = True
-
+    print("B")
     tableInitialized = True
 
     np.savez(const.CLUSTER_PATH, data=data)
     prevPositions = data
-    pos, col = getColors(const.CAM2[2], np.array(data))
+    print("C")
+    pos, col = getColors(const.CAM2[2], np.array(data), frame)
+    print("D")
     if const.MARCHING_CUBE:
         print("Start Marching Cube")
         marchingCube(voxels)
         print("End Marching Cube")
-
+    print("E")
     return pos, col
 
 def set_voxel_positions_xor(width,height,depth,frame):
